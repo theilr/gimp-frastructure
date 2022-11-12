@@ -2,20 +2,24 @@
 
 This repository contains a miscellaneous collection of python scripts for image processing on the GIMP. Most of these routines were initially written in 2009, when I learned how to use *script-fu* to automate tasks that I had been doing by hand.  Several of them were uploaded to the now defunct [Gimp Registry](https://www.gimp.org/registry).  There were some minor updates for a few years after that, but for most of the decade, I was distracted by other projects.  Sometime in 2019, I tried running some of my scripts on an updated GIMP, and found that some of them failed, mostly due to the restriction to *plug-in-gauss* described below, but I found other new restrictions as well (such as *plug-in-rotate* triggering an error when I tried to rotate by zero degrees).  More recently (late 2022), I got myself a new linux box, installed GIMP 2.10, and began to revisit these routines as python plug-ins.  My main motivation for switching to python is that, compared to scheme, I am subjectively more comfortable with python, and I objectively find python to be a superior language. Among python's advantages is the ability to write object-oriented code, to make explicit contexts, and basically to have a more hierarchical infrastructure.  The *pdb* is great, but to a non-expert it looks like a big flat list of procedural routines. My ambition was to make some classes and some contexts and ultimately to produce an environment that makes it easier to write new GIMP routines. Hence the name *GIMP-FRASTRUCTURE* -- which at this point is more aspirational than descriptive.  One thing I realized as I started re-writing my scripts as python plug-ins is that there is already a lot of infrastructure out there. See [https://www.gimp.org/docs/python/] for a very helpful description of this existing infrastructure (I found .  Thus, at this point at least, the utility of this repository is not really its structure, but -- I hope -- some of its routines, which do nice tricks with images.
 
-# ROUTINES
-
 ### Installation
 
 These routines are installed by copying the named python file (eg, `wideblur.py` or 
 `cheaphdr.py`) into your plug-in's directory.  You will **also** need to include
 `process.py` which contains most of the actual code for these various routines.
 
+# LIST OF ROUTINES
+
 ## Wide Blur
+
+`wideblur.py` and `process.py`
 
 The GIMP built-in *plug-in-gauss* is used for blurring an image by convolution with a Gaussian kernel of user-specified radius.  The larger the radius, the blurrier the result. 
 Somewhere between 2009 and 2019, a restriction was placed on the function to limit the radius to 500 pixels or less.  There are times (eg, see *Cheap HDR* below) when a larger radius blur is desired, and so the new routine *wide_blur* gets around that limitation.  The algorithm is not complicated; it just runs *plug-in-gauss* multiple times, until the desired radius is achieved. In particular, N convolutions with a Gaussian with radius r, is equivalent to a single convolution with radius sqrt(N)*r.
 
 ## Cheap HDR
+
+`cheaphdr.py` and `process.py`
 
 The name is a bit of a misnomer (well, the *cheap* part is accurate).
 HDR = High Dynamic Range, and for most image formats, you are
@@ -43,6 +47,8 @@ some very sophisticated tone mapping algorithms; my favorite is at
 
 ## Quick Enhance
 
+`quickenhance.py` and `process.py`
+
 When I process my own photographs, I find myself doing variants of the
 same basic processes almost all the time. This routine encapsulates
 those initial processing stages into a single tool. These steps are:
@@ -58,12 +64,16 @@ those initial processing stages into a single tool. These steps are:
 	
 ## Vignette
 
+`vignette.py` and `process.py`
+
 Sometimes you can draw a little more attention to the center of the image (if that's
 the part you want the viewer to focus on) by darkening the corners a little bit.  
 For some images,
 it looks better to lighten those corners.  This routine does either.
 
 ## Jagged Border
+
+`jaggedborder.py` and `process.py`
 
 This is probably my favorite effect.  It can be over-done (I'm quite sure that I over-use
 it), but it's a way to get away from the *rectangular-ness* of an image.
@@ -85,6 +95,8 @@ Some examples can be found in [this album](https://flickr.com/photos/theilr/albu
 
 ## Mirror / Accordion
 
+`mirror.py', 'accordion.py`, and `process.py`
+
 The *Mirror* routine takes an image and abuts it to a copy of itself, but with the 
 copy flipped into a mirror image.  This can be done either horizontally or vertically or both.
 
@@ -94,6 +106,8 @@ multiple copies in both horizontal and vertical directions.
 I made up the name [hemitrope](https://flickr.com/photos/theilr/albums/72157594412740799) to describe this style of image manipulation.
 
 ## Fibonacci Spiral
+
+`fibonaccispiral.py`, and `process.py`
 
 Converts a square or rectangular image into a Fibonacci spiral
 (similar to a "golden spiral" -- the fine distinctions are discussed
@@ -115,6 +129,8 @@ album](https://flickr.com/photos/theilr/albums/72157629093310975) on
 my flickr site.
 
 ## Pan to Bow
+
+`pantobow.py`, and `process.py`
 
 Takes a wide panoramic image and bends it into a rainbow-shaped 
 image in a way that (roughly) keeps the same scale and aspect
@@ -155,6 +171,8 @@ album](https://flickr.com/photos/theilr/albums/72157629062981943) on
 my flickr site for some examples.
 
 # Infinity
+
+`infinity.py` and `process.py`
 
 With a name like that, you are bound to be disappointed! 
 

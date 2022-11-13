@@ -263,9 +263,10 @@ to do with your panoramic images.
 NOTE: If your image width-to-length ratio is too small, funny things might
 happen. 
 
-ANOTHER NOTE: The seams at the inflection points, where the curvature
-changes direction (this occurs along the horizontal center line of
-the image), are not always smooth.
+ANOTHER NOTE: The figure is produced from 180-degree chunks, and the
+seams between these chunks, especially at the inflection points, where
+the curvature changes direction, are not always smooth.  This occurs
+along the horizontal center line of the image.
 
 FURTHER NOTE: Since the result is four distinct layers (five, including
 the background) with an 180 degree rainbow (or smile) on each layer, 
@@ -288,8 +289,8 @@ These programs are free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License Version 3 as
 published by the Free Software Foundation.
 
-This program is distributed in the hope that it will be useful,
+These programs are distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License at  http://www.gnu.org/licenses for
+GNU General Public License at http://www.gnu.org/licenses for
 more details.

@@ -105,23 +105,26 @@ ___
 
 `jaggedborder.py` and `process.py`
 
-This is probably my favorite effect.  It can be over-done (I'm quite sure that I over-use
-it), but it's a way to get away from the *rectangular-ness* of an image.
+This is probably my favorite effect.  It can be over-done (I'm quite
+sure that I over-use it), but it's a way to get away from the
+*rectangular-ness* of an image.
 
-It creates a white (or black) border around an image that merges in with
-the image so that on a larger white (or black) background, the image
-appears to have a ragged border.  This is similar to the GIMP's Fuzzy
-Border, but it adapts its jaggedness to the image. (Also unlike Fuzzy
-Border, it is deterministic, it does not depend on random number
+It creates a white (or black) border around an image that merges in
+with the image so that on a larger white (or black) background, the
+image appears to have a ragged border.  This is similar to the GIMP's
+Fuzzy Border, but it adapts its jaggedness to the image. (Also unlike
+Fuzzy Border, it is deterministic, it does not depend on random number
 seeds.)
 
 USAGE NOTES: Since this non-destructively produces a border as a
-separate layer, you can tweak the border: eg smooth it (yuck, then it's
-not very jagged anymore!), change its color, use it to build some
+separate layer, you can tweak the border: eg smooth it (yuck, then
+it's not very jagged anymore!), change its color, use it to build some
 fancy drop-shadow, etc.  A number of effects can be obtained by using
 the white/black border layer and/or its inverse as a layer mask.
 
-Some examples can be found in [this album](https://flickr.com/photos/theilr/albums/72157629062436675) on my flickr site.
+Here are some examples from the [Jagged Border
+album](https://flickr.com/photos/theilr/albums/72157629062436675) on
+my flickr site:
 
 ![tree rings](https://live.staticflickr.com/8160/7710531536_799e6cc183_n.jpg)
 ![holly on black](https://live.staticflickr.com/2565/4116429002_e7d6bc328d_n.jpg)
@@ -131,12 +134,17 @@ Some examples can be found in [this album](https://flickr.com/photos/theilr/albu
 
 `mirror.py` and `process.py`
 
-The *Mirror* routine takes an image and abuts it to a copy of itself, but with the 
-copy flipped into a mirror image.  This can be done either horizontally or vertically or both.
-Usually the effect is obvious, but you're an artist, you can find ways to make it more
-interesting; even just rotating the image by a couple of degrees makes it less blatant that the image is mirrored, yet you can still see the symmetry.
+The *Mirror* routine takes an image and abuts it to a copy of itself,
+but with the copy flipped into a mirror image.  This can be done
+either horizontally or vertically or both.  Usually the effect is
+obvious, but you're an artist, you can find ways to make it more
+interesting; even just rotating the image by a couple of degrees makes
+it less blatant that the image is mirrored, yet you can still see the
+symmetry.
 
-I made up the name [hemitrope](https://flickr.com/photos/theilr/albums/72157594412740799) to describe this style of image manipulation.
+I called these [hemitropes and
+quadrupoles](https://flickr.com/photos/theilr/albums/72157594412740799)
+on my flickr page.
 
 ![closed parentheses](https://live.staticflickr.com/2302/1647854600_f08719d2e2_n.jpg)
 ![stairs](https://live.staticflickr.com/2335/2100307290_d9b3e334f7_n.jpg)
@@ -146,8 +154,9 @@ I made up the name [hemitrope](https://flickr.com/photos/theilr/albums/721575944
 
 `accordion.py` and `process.py`
 
-The *Accordion* routine subsumes all the features in *Mirror* but extends to
-multiple copies in either the horizontal and vertical direction, or both.
+The *Accordion* routine subsumes all the features in *Mirror* but
+extends to multiple copies in either the horizontal and vertical
+direction, or both.
 
 ![Rocket man](https://live.staticflickr.com/179/370940553_a5e7b37a6d_n.jpg)
 
@@ -165,13 +174,14 @@ tiling.  If the initial image is square, then the tiling has no
 overlap; for a rectangular image, the user can specify a blending mode
 for how the overlap is treated.
 
-Works best if the image has a Fibonacci number of pixels as width
-and height (and this is especially true if the original image is a
-square).  The user can (and should!) toggle an automatic rescaling to the nearest
-Fibonacci length (smaller than or equal to the original size).
+Works best if the image has a Fibonacci number of pixels as width and
+height (and this is especially true if the original image is a
+square).  The user can (and should!) toggle an automatic rescaling to
+the nearest Fibonacci length (smaller than or equal to the original
+size).
 
-Some examples of what a Fibonacci spiral looks like can be found in
-[this
+Some examples of what this looks like can be found in the [Fibonacci
+Spiral
 album](https://flickr.com/photos/theilr/albums/72157629093310975) on
 my flickr site.
 
@@ -183,77 +193,86 @@ my flickr site.
 
 `pantobow.py`, and `process.py`
 
-Takes a wide panoramic image and bends it into a rainbow-shaped 
-image in a way that (roughly) keeps the same scale and aspect
-ratio as the original. The user specifies the angle of the arc,
-from 45 to 360 degrees.
+Takes a wide panoramic image and bends it into a rainbow-shaped image
+in a way that (roughly) keeps the same scale and aspect ratio as the
+original. The user specifies the angle of the arc, from 45 to 360
+degrees.
 
 USAGE NOTES:
+
 Although the new image keeps the same scale as the original, the
-created image will have a larger number of pixels (because of all
-the empty pixels). And during intermediate steps, the image can
-sometimes (depending on the input arc angle) expand to a lot more pixels.
+created image will have a larger number of pixels (because of all the
+empty pixels). And during intermediate steps, the image can sometimes
+(depending on the input arc angle) expand to a lot more pixels.
 
 The attempt at non-distortion applies only to the central horizontal
-band of the image. Depending on the initial aspect ratio, you will
-see distortion above and below that center line.  (The larger the
-initial aspect ratio, the smaller the distortion will be.)
+band of the image. Depending on the initial aspect ratio, you will see
+distortion above and below that center line.  (The larger the initial
+aspect ratio, the smaller the distortion will be.)
 
-If the aspect ratio isn't wide enough, then aspect ratio cannot
-be preserved.  (This isn't actually a bug, it's basic geometry.)
-In particular, you want width/height > angle_degrees / 114.6.
-For instance, for default 180-degree bow, width/height > 1.57.
-The program will still "work" if these conditions are not met, 
-but it won't look like a rainbow.
+If the aspect ratio isn't wide enough, then aspect ratio cannot be
+preserved.  (This isn't actually a bug, it's basic geometry.)  In
+particular, you want width/height > angle_degrees / 114.6.  For
+instance, for default 180-degree bow, width/height > 1.57.  The
+program will still "work" if these conditions are not met, but it
+won't look like a rainbow.
 
 More specifically: 
 * Normally, the scaling works so that the outer radius minus the
   inner radius of the bow is equal to the height of the image.
-* If theta \> 114(W/H) degrees, then the inner
-radius of the arc goes to zero (it's not a bow anymore but a 
-circular sector). 
+* If theta \> 114(W/H) degrees, then the inner radius of the 
+arc goes to zero (it's not a bow anymore but a circular sector). 
 * Meanwhile, if theta > 180(W/H) degrees, then there is a 
 shrinking of the outer radius, so that it is smaller than
-the height of the image.
+the height of the image. (This is something I might be able
+to fix in a future release.)
 
-If the angle is small (so there is only a mild arc), then geometry
-is not a problem at all.  But in this case, the routine will
-end up using a lot of memory (since internally it builds the full
-circle).  In its current configuration, therefore, angles less than 
-45 degrees are not allowed.
+If the angle is small (so there is only a mild arc), then a
+different problem arises.  Since the toutine uses the built-in *plug-in-polar-coords* routine, it requires that the full circle be built.  The way
+we get fractions of that circle is by padding the image with empty 
+pixels.  If the angle is small, there are a lot of empty pixels,
+which can tax the memory of the machine and take a lot of extra 
+processing.  For this reason, the current configuration does not
+allow angles less than 45 degrees.
 
-Note: this routine uses the built-in *plug-in-polar-coords* routine;
-an alternative approach, which is ultimately more elegant (and probably
-works much better for small angles), is called
-"arclayer" and is described
-on the [shallowsky](https://shallowsky.com/software/#gimp) website.
+Note: an alternative approach, which is ultimately more elegant (and
+probably works much better for small angles), is called "arclayer" and
+is described on the
+[shallowsky](https://shallowsky.com/software/#gimp) website.
 
-See [this
+Here are some examples from the [Pan to Bow
 album](https://flickr.com/photos/theilr/albums/72157629062981943) on
-my flickr site for some examples.
+my flickr site:
 
 ![pan to bow](https://live.staticflickr.com/2743/4144518815_eabbfc63f6_n.jpg)
 ![yellow flower](https://live.staticflickr.com/4142/5006080841_7508467c5b_n.jpg)
 ![Pando ergo sum](https://live.staticflickr.com/65535/51820971011_c23dec7f7f_m.jpg)
 
-### Infinity
+### Pan to Infinity (...and beyond?)
 
 `infinity.py` and `process.py`
 
-With a name like that, you are bound to be disappointed! 
-
-*Infinity* takes an image, and bends it into both
-rainbow and smile shapes of 180 degrees.  Then it makes flipped copies
-of each and from those four components, combines them into a 
-figure-8 racetrack shape that kind of looks like an infinity symbol.
-
-Basically,
-this is a routine that provides an example of something you can do
+*Pan to Infinity* takes an image and bends it around into a horizontal 
+figure-eight racetrack shape that kind of looks like an infinity symbol. 
+The main point of this routine si to show an example of the kinds of 
+things you can do 
 with the *Pan to Bow* routine. This is definitely in the "novelty" category,
 but it might give you ideas for something creative **you** might be able
-to do.
+to do with your panoramic images.
 
-___
+NOTE: If your image width-to-length ratio is too small, funny things might
+happen. 
+
+ANOTHER NOTE: The seams at the inflection points, where the curvature
+changes direction (this occurs along the horizontal center line of
+the image), are not always smooth.
+
+FURTHER NOTE: Since the result is four distinct layers (five, including
+the background) with an 180 degree rainbow (or smile) on each layer, 
+you can manually tweak the positions of the indiviudal layers, and
+this may improve results.
+
+![abc](abc-infinity-pad45.png).
 ___
 
 ## AUTHOR

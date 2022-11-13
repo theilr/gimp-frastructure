@@ -14,16 +14,18 @@ figure-8 racetrack that kind of looks like an infinity symbol
 from gimpfu import *
 import process
 
-def infinity(img,bkg_color):
+def infinity(img,bkg_color,pad,squeeze):
     with process.UndoContext(img):
-        process.infinity(img,bkg_color)
+        process.infinity(img,bkg_color,pad,int(squeeze))
 
 process.pfreg(infinity,
               [
                   (PF_IMAGE, "img", "Input image", None),
-                  (PF_COLOR, "bkg_color", "Background color", (1.,1.,0.))
+                  (PF_COLOR, "bkg_color", "Background color", (1.,1.,1.)),
+                  (PF_SPINNER, "pad", "Pad angle", 0, (0, 270, 15)),
+                  (PF_BOOL, "squeeze", "Squeeze middle", False),
               ],
-              name="Infinity",
+              name="Pan to Infinity",
               description=DESCRIPTION,
               author="theilr",
               year="2022",

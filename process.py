@@ -4,11 +4,24 @@ from __future__ import print_function, division
 import math
 from gimpfu import *
 
-def simple_flip(layer,orientation):
+############################
+## General utility functions
+
+def flip_orient(layer,orientation):
     '''shorter name for pdb.gimp_item_transform_flip_simple'''
     return pdb.gimp_item_transform_flip_simple(layer,
                                                orientation,
                                                True,0)
+def flip_v(layer):
+    return flip_orient(layer,ORIENTATION_VERTICAL)
+def flip_h(layer):
+    return flip_orient(layer,ORIENTATION_HORIZONTAL)
+def flip(layer,hflip=False,vflip=False):
+    if hflip:
+        layer = flip_h(layer)
+    if vflip:
+        layer = flip_v(layer)
+    return layer
 
 def visible_base(img,hflip=False,vflip=False,name="VisibleBase"):
     '''copy visible to layer, then flip horizontally and/or vertically'''
@@ -16,11 +29,32 @@ def visible_base(img,hflip=False,vflip=False,name="VisibleBase"):
     layer = pdb.gimp_layer_new_from_visible(img,img,name)
     img.add_layer(layer,-1)
     ## and flip if needed
-    if hflip:
-        layer = simple_flip(layer,ORIENTATION_HORIZONTAL)
-    if vflip:
-        layer = simple_flip(layer,ORIENTATION_VERTICAL)
+    layer = flip(layer,hflip,vflip)
     return layer
+
+def layer_fill_color(layer,color,respect_selection=False):
+    '''
+    fill a layer with a solid color,
+    optionally respecting the selection, if there is one
+    '''
+    fg_orig = gimp.get_foreground()
+    gimp.set_foreground(color)
+    if respect_selection:
+        pdb.gimp_edit_fill(layer,FILL_FOREGROUND)
+    else:
+        layer.fill(FILL_FOREGROUND)
+    gimp.set_foreground(fg_orig)
+
+def merge_down_active_layer(img):
+    '''
+    to keep layers from piling up, merge down from the current layer,
+    return the layer that, after the merge, is then current
+    '''
+    img.merge_down(img.active_layer,0)
+    return img.active_layer
+
+#############################
+## Image processing functions
 
 def wide_blur(img, layer, radius):
     '''apply gauss-filter in place to layer'''
@@ -57,6 +91,38 @@ def stretch(img,layer,f_stretch):
     #pdb.plug_in_c_astretch(img,st_layer)
     st_layer.opacity = f_stretch
 
+def vignette(img,layer,lighten_corners,blur_radius,opacity,noise_spread):
+
+    ## make a new layer
+    vig_layer = img.new_layer("Vignette",img.width,img.height,
+                              opacity=opacity,mode=LAYER_MODE_OVERLAY)
+    ## paint it white (or black)
+    pdb.gimp_drawable_fill(vig_layer,WHITE_FILL)
+    if not lighten_corners:
+        pdb.gimp_invert(vig_layer)
+
+    ## select an ellipse
+    pdb.gimp_image_select_ellipse(img,CHANNEL_OP_REPLACE,
+                                  0,0,img.width,img.height)
+
+    ## paint the ellipse gray
+    layer_fill_color(vig_layer,(0.5,0.5,0.5),
+                     respect_selection=True)
+
+    ## un-select the ellipse selection
+    pdb.gimp_selection_none(img)
+
+    ## blur the gray ellipse into the light or dark corners
+    wide_blur(img,vig_layer,blur_radius)
+
+    ## maybe spread noise
+    if noise_spread:
+        ## why spread it more than 50 pixels?
+        pdb.plug_in_spread(img,vig_layer,min([50,blur_radius]),min([50,blur_radius]))
+
+###############################
+## Image manipulation functions
+
 def multiply_size_by_orientation(item,n,m,orientation):
     if orientation == ORIENTATION_VERTICAL:
         n,m = m,n
@@ -69,7 +135,7 @@ def reflect(img,orientation):
     w,h = multiply_size_by_orientation(img,2,1,orientation)
     img.resize(w,h,0,0)
     nextlayer = visible_base(img,name="Mirror")
-    nextlayer = simple_flip(nextlayer,orientation)
+    nextlayer = flip_orient(nextlayer,orientation)
     pdb.gimp_image_merge_down(img,nextlayer,0)
 
 def mirror(img, layer, m_horiz, m_vert, ul_hflip, ul_vflip):
@@ -86,15 +152,6 @@ def mirror(img, layer, m_horiz, m_vert, ul_hflip, ul_vflip):
     if m_vert:
         reflect(img,1)
 
-def merge_down_active_layer(img):
-    '''
-    to keep layers from piling up, merge down from the current layer,
-    return the layer that, after the merge, is then current
-    '''
-    img.merge_down(img.active_layer,0)
-    return img.active_layer
-
-
 def accord_1d(img,layer,n,do_flip,orientation):
     '''helper function for accordion -- just does 1d'''
     ## make the image big enough
@@ -104,7 +161,7 @@ def accord_1d(img,layer,n,do_flip,orientation):
         nextlayer = layer.copy()
         img.add_layer(nextlayer,-1)
         if do_flip and i % 2: ## flip the odd tiles
-            nextlayer = simple_flip(nextlayer,orientation)
+            nextlayer = flip_orient(nextlayer,orientation)
         x,y = multiply_size_by_orientation(layer,i,0,orientation)
         nextlayer.set_offsets(x,y)
         if i > 0:
@@ -337,7 +394,7 @@ def jagged_border_run(img,layer,border_shape,border_white,border_size,
         pdb.gimp_invert(bdr_layer)
         bdr_layer.mode = LAYER_MODE_MULTIPLY
 
-def pan_to_bow(img,angle_degrees,arc_up):
+def pan_to_bow(img,angle_degrees,arc_up=True):
     ## Using a new layer from visible, we obtain transparent background
 
     ## since background is going to be transparent, make bottom layer invisible
@@ -361,21 +418,21 @@ def pan_to_bow(img,angle_degrees,arc_up):
     bow_radius = int( w_o / angle_radians )
     radius_inner = max([0, bow_radius - h_o//2])
     radius_outer = radius_inner + h_o
-    print('radii:',radius_inner,radius_outer)
+    #print('radii:',radius_inner,radius_outer)
     pad_sides = int( w_o * (360/angle_degrees - 1)/2 )
     w_expanded = int( w_o + 2*pad_sides )
     h_expanded = int( h_o + radius_inner )
 
-    print('pad_sides:',pad_sides)
+    #print('pad_sides:',pad_sides)
 
     img.resize(w_expanded,h_expanded,pad_sides,0)
     layer.resize(w_expanded,h_expanded,pad_sides,0)
     layer.scale(w_expanded,2*h_expanded,False)
     img.resize(w_expanded,2*h_expanded,0,0)
 
-    print('img befor:',img.width,img.height)
+    #print('img befor:',img.width,img.height)
     pdb.plug_in_polar_coords(img,layer,100,180,False,False,True)
-    print('img after:',img.width,img.height)
+    #print('img after:',img.width,img.height)
 
     sinx = abs(math.sin(angle_radians/2))
     cosx = abs(math.cos(angle_radians/2))
@@ -389,73 +446,72 @@ def pan_to_bow(img,angle_degrees,arc_up):
     w_crop = int(w_crop)
     h_crop = int(h_crop)
 
-    print('w:',2*radius_outer,w_expanded,w_crop,(w_expanded-w_crop)//2)
-    print('crop:',w_crop,h_crop)
+    #print('w:',2*radius_outer,w_expanded,w_crop,(w_expanded-w_crop)//2)
+    #print('crop:',w_crop,h_crop)
     ## img and exp should be the same
-    print(' img:',img.width,img.height)
-    print(' exp:',w_expanded,2*h_expanded)
+    #print(' img:',img.width,img.height)
+    #print(' exp:',w_expanded,2*h_expanded)
     if img.width < img.height:
         ## some shrinkage occurred
         f_shrink = img.width / (2*radius_outer)
         w_crop = int( f_shrink*w_crop )
         h_crop = int( f_shrink*h_crop )
         h_off = img.height//2 - int(f_shrink*radius_outer)
-        
+
         img.crop(w_crop,h_crop,0,h_off)
     else:
         ## offset is in width
         img.crop(w_crop,h_crop,(img.width - w_crop)//2,0)
 
     if arc_up:
-        simple_flip(layer,ORIENTATION_VERTICAL)
+        layer = flip_v(layer)
 
-def layer_fill_color(layer,color,respect_selection=False):
+    return layer
 
-    fg_orig = gimp.get_foreground()
-    gimp.set_foreground(color)
-    if respect_selection:
-        pdb.gimp_edit_fill(layer,FILL_FOREGROUND)
-    else:
-        layer.fill(FILL_FOREGROUND)
-    gimp.set_foreground(fg_orig)
+def infinity(img,bkg_color,pad_degrees=0,vfix=0):
+    '''bend a high-aspect ratio image into a horizontal figure-eight'''
+    pad = pad_degrees/(720-2*pad_degrees)
+    if pad > 0:
+        pixpad = int(pad*img.width)
+        new_width = img.width + 2*pixpad
+        img.resize(new_width,img.height,pixpad,0)
 
-def infinity(img,bkg_color):
-
+    ## make sure width evenly divisible by 4, cropping if necessary
+    new_width = 4*(img.width//4)
+    if new_width != img.width:
+        img.crop(new_width,img.height,0,0)
+    ## make main layer from visible image
     main_layer = visible_base(img,name="InfinityBase")
     h = main_layer.height
+    w = main_layer.width
     aux_layers = []
-    for rainbow in [True,False]:
-        ## Do pan_to_bow on an auxiliary image
+    for k in range(4):
+        ## Put 1/4 of the image into an aux image
         img_aux = gimp.Image(img.width,img.height,RGB)
-        #da = pdb.gimp_display_new(img_aux)
+        layer = pdb.gimp_layer_new_from_drawable(main_layer, img_aux)
+        img_aux.add_layer(layer)
+        img_aux.crop(w//4,h,k*w//4,0)
+        ## Make a rainbow or smile
+        rainbow = bool(k in [2,3])
+        layer = pan_to_bow(img_aux,180,rainbow)
+        ## orient as needed
+        if k in [0,3]:
+            layer = flip(layer,True,True)
+        ## add rainbow layer back to original image
+        layer_new = pdb.gimp_layer_new_from_drawable(layer, img)
+        img.add_layer(layer_new)
+        aux_layers.append(layer_new)
 
-        ## Make a layer in aux image that is pan_to_bow
-        layer_aux = pdb.gimp_layer_new_from_drawable(main_layer, img_aux)
-        img_aux.add_layer(layer_aux)
-        if rainbow:
-            layer_aux = simple_flip(layer_aux,ORIENTATION_HORIZONTAL)
-        pan_to_bow(img_aux,180,rainbow)
-        layer_aux = pdb.gimp_layer_new_from_drawable(img_aux.active_layer, img)
-        img.add_layer(layer_aux)
-        aux_layers.append(layer_aux)
-
-        ## Make another layer in aux_image that is vertically flipped pan_to_bow
-        layer_aux = layer_aux.copy()
-        img.add_layer(layer_aux)
-        layer_aux = simple_flip(layer_aux,ORIENTATION_VERTICAL)
-        aux_layers.append(layer_aux)
-        #pdb.gimp_display_delete(da)
-
-    img.resize_to_layers()
-    W = img.width
-    H = img.height
+    W = aux_layers[0].width
+    H = aux_layers[0].height
     img.resize(2*W-h,2*H,0,0)
-    ## offsets at H-1,1 instead of H,0 are used to
+    ## offsets at H-vfix,vfix instead of H,0 are used to
     ## squeeze out rounding-effect artifact of horizontal line
-    aux_layers[0].set_offsets(W-h,H-1) 
-    aux_layers[1].set_offsets(W-h,1)
-    aux_layers[2].set_offsets(0,1)
-    aux_layers[3].set_offsets(0,H-1)
+    hfix=1 ## not sure why this helps, but it seems to
+    aux_layers[0].set_offsets(hfix,H-vfix)
+    aux_layers[1].set_offsets(0,vfix)
+    aux_layers[2].set_offsets(W-h,H-vfix)
+    aux_layers[3].set_offsets(W-h+hfix,vfix)
     for _ in range(3):
         img.lower_layer(aux_layers[3])
 
@@ -465,37 +521,8 @@ def infinity(img,bkg_color):
     layer_fill_color(tmp_layer,bkg_color)
     img.lower_layer(tmp_layer)
 
-
-
-def vignette(img,layer,lighten_corners,blur_radius,opacity,noise_spread):
-
-    ## make a new layer
-    vig_layer = img.new_layer("Vignette",img.width,img.height,
-                              opacity=opacity,mode=LAYER_MODE_OVERLAY)
-    ## paint it white (or black)
-    pdb.gimp_drawable_fill(vig_layer,WHITE_FILL)
-    if not lighten_corners:
-        pdb.gimp_invert(vig_layer)
-
-    ## select an ellipse
-    pdb.gimp_image_select_ellipse(img,CHANNEL_OP_REPLACE,
-                                  0,0,img.width,img.height)
-
-    ## paint the ellipse gray
-    layer_fill_color(vig_layer,(0.5,0.5,0.5),
-                     respect_selection=True)
-
-    ## un-select the ellipse selection
-    pdb.gimp_selection_none(img)
-
-    ## blur the gray ellipse into the light or dark corners
-    wide_blur(img,vig_layer,blur_radius)
-
-    ## maybe spread noise
-    if noise_spread:
-        ## why spread it more than 50 pixels?
-        pdb.plug_in_spread(img,vig_layer,min([50,blur_radius]),min([50,blur_radius]))
-
+############################
+## Define the 'undo' context
 
 class UndoContext:
     '''code within this context has an Undo associated with it'''
@@ -511,6 +538,9 @@ class UndoContext:
             print('exc:',exc_type,exc_value,exc_tb)
         pdb.gimp_undo_push_group_end(self.img)
         return True
+
+##################################
+## Wrapper for register() function
 
 def pfreg(fcn,fcn_arglist,
           author="Anonymous",

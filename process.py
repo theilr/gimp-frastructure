@@ -350,9 +350,13 @@ def pan_to_bow(img,angle_degrees,arc_up):
     h_o = layer.height
     w_o = layer.width
     max_degrees = 360.*w_o/(h_o*math.pi)
+    top_degrees = math.pi*max_degrees/2
     if angle_degrees > max_degrees:
-        ## exceptional case, throws off calculations
+        ## causes inner radius to be zero
         print('max angle:',max_degrees,'degrees')
+    if angle_degrees > top_degrees:
+        ## causes shrinkage to occur in outer radius < h_o
+        print('top angle:',top_degrees,'degrees')
     angle_radians = angle_degrees * math.pi / 180.
     bow_radius = int( w_o / angle_radians )
     radius_inner = max([0, bow_radius - h_o//2])
@@ -360,7 +364,7 @@ def pan_to_bow(img,angle_degrees,arc_up):
     print('radii:',radius_inner,radius_outer)
     pad_sides = int( w_o * (360/angle_degrees - 1)/2 )
     w_expanded = int( w_o + 2*pad_sides )
-    h_expanded = int( h_o + max([0,radius_inner]) )
+    h_expanded = int( h_o + radius_inner )
 
     print('pad_sides:',pad_sides)
 
@@ -369,34 +373,38 @@ def pan_to_bow(img,angle_degrees,arc_up):
     layer.scale(w_expanded,2*h_expanded,False)
     img.resize(w_expanded,2*h_expanded,0,0)
 
+    print('img befor:',img.width,img.height)
     pdb.plug_in_polar_coords(img,layer,100,180,False,False,True)
-
-    if angle_degrees > max_degrees:
-        ## in this exceptional case, actual diameter is reduced
-        diameter_outer = w_expanded
-    else:
-        diameter_outer = 2*radius_outer
+    print('img after:',img.width,img.height)
 
     sinx = abs(math.sin(angle_radians/2))
     cosx = abs(math.cos(angle_radians/2))
     if angle_degrees < 180:
-        w_crop = diameter_outer*sinx
-        h_crop = diameter_outer//2 - radius_inner*cosx
+        w_crop = 2*radius_outer*sinx
+        h_crop = radius_outer - radius_inner*cosx
     else:
-        w_crop = diameter_outer
-        h_crop = (diameter_outer + diameter_outer*cosx)//2
+        w_crop = 2*radius_outer
+        h_crop = (1+cosx)*radius_outer
 
     w_crop = int(w_crop)
     h_crop = int(h_crop)
 
     print('w:',2*radius_outer,w_expanded,w_crop,(w_expanded-w_crop)//2)
-    if angle_degrees > max_degrees:
-        ## in this exceptional case, need to resize before the crop
-        img.resize(w_crop,img.height)
-        img.crop(w_crop,h_crop,0,radius_outer-diameter_outer//2)
+    print('crop:',w_crop,h_crop)
+    ## img and exp should be the same
+    print(' img:',img.width,img.height)
+    print(' exp:',w_expanded,2*h_expanded)
+    if img.width < img.height:
+        ## some shrinkage occurred
+        f_shrink = img.width / (2*radius_outer)
+        w_crop = int( f_shrink*w_crop )
+        h_crop = int( f_shrink*h_crop )
+        h_off = img.height//2 - int(f_shrink*radius_outer)
+        
+        img.crop(w_crop,h_crop,0,h_off)
     else:
-        ## normal case
-        img.crop(w_crop,h_crop,(w_expanded - w_crop)//2,0)
+        ## offset is in width
+        img.crop(w_crop,h_crop,(img.width - w_crop)//2,0)
 
     if arc_up:
         simple_flip(layer,ORIENTATION_VERTICAL)
@@ -442,10 +450,12 @@ def infinity(img,bkg_color):
     W = img.width
     H = img.height
     img.resize(2*W-h,2*H,0,0)
-    aux_layers[0].set_offsets(W-h,H)
-    aux_layers[1].set_offsets(W-h,0)
-    aux_layers[2].set_offsets(0,0)
-    aux_layers[3].set_offsets(0,H)
+    ## offsets at H-1,1 instead of H,0 are used to
+    ## squeeze out rounding-effect artifact of horizontal line
+    aux_layers[0].set_offsets(W-h,H-1) 
+    aux_layers[1].set_offsets(W-h,1)
+    aux_layers[2].set_offsets(0,1)
+    aux_layers[3].set_offsets(0,H-1)
     for _ in range(3):
         img.lower_layer(aux_layers[3])
 

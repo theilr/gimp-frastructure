@@ -1,6 +1,6 @@
 # GIMP-FRASTRUCTURE
 
-This repository contains a miscellaneous collection of python scripts for image processing with the [GNU Image Manipulation Program](https://www.gimp.org/GIMP), aka the GIMP. Most of these routines were initially written in 2009, when I learned how to use *script-fu* to automate tasks that I had been doing by hand.  Several of them were uploaded to the now defunct [Gimp Registry](https://www.gimp.org/registry).  There were some minor updates for a few years after that, but for most of the decade, I was distracted by other projects.  Sometime in 2019, I tried running some of my scripts on an updated GIMP, and found that some of them failed, mostly due to the restriction to *plug-in-gauss* described below, but I found other new restrictions as well (such as *plug-in-rotate* triggering an error when I tried to rotate by zero degrees).  More recently (late 2022), I got myself a new linux box, installed GIMP 2.10, and began to revisit these routines as python plug-ins.  My main motivation for switching to python is that, compared to scheme, I *subjectively* am more comfortable with python, and I *objectively* find python to be a superior language. Among python's advantages is the ability to write object-oriented code, to make explicit contexts, and basically to have a more hierarchical infrastructure.  The *pdb* is great, but to a non-expert it looks like a big flat list of procedural routines. My ambition was to make some classes and some contexts and ultimately to produce an environment that makes it easier to write new GIMP routines. Hence the name *GIMP-FRASTRUCTURE* -- which at this point is more aspirational than descriptive.  One thing I realized as I started re-writing my scripts as python plug-ins is that there is already a fair bit of infrastructure out there, some (not all) of it documented at [https://www.gimp.org/docs/python/]. I also learned a lot from Akkana Peck's [tutorial slideshow](https://gimpbook.com/scripting/slides/index.html), as well as all the examples and resources (such as her [book](https://gimpbook.com)) pointed to by those slides.
+This repository contains a miscellaneous collection of python scripts for image processing with the [GNU Image Manipulation Program](https://www.gimp.org/GIMP), aka the GIMP. Most of these routines were initially written in 2009, when I learned how to use *script-fu* to automate tasks that I had been doing by hand.  Several of them were uploaded to the now defunct [Gimp Registry](https://www.gimp.org/registry).  There were some minor updates for a few years after that, but for most of the decade, I was distracted by other projects.  Sometime in 2019, I tried running some of my scripts on an updated GIMP, and found that some of them failed, mostly due to the restriction to *plug-in-gauss* described below, but I found other new restrictions as well (such as *plug-in-rotate* triggering an error when I tried to rotate by zero degrees).  More recently (late 2022), I got myself a new linux box, installed GIMP 2.10, and began to revisit these routines as python plug-ins.  My main motivation for switching to python is that, compared to scheme, I *subjectively* am more comfortable with python, and I *objectively* find python to be a superior language. Among python's advantages is the ability to write object-oriented code, to make explicit contexts, and basically to have a more hierarchical infrastructure.  The *pdb* is great, but to a non-expert it looks like a big flat list of procedural routines. My ambition was to make some classes and some contexts and ultimately to produce an environment that makes it easier to write new GIMP routines. Hence the name *GIMP-FRASTRUCTURE* -- which at this point is more aspirational than descriptive.  One thing I realized as I started re-writing my scripts as python plug-ins is that there is already a fair bit of infrastructure out there, some (not all) of it documented at [https://www.gimp.org/docs/python/]. I also learned a lot from Akkana Peck's [tutorial slideshow](https://gimpbook.com/scripting/slides/index.html), as well as some of the examples and resources (such as her [book](https://gimpbook.com)) pointed to by those slides.
 
 Thus, at this point at least, the utility of this repository is not really its (gimp-fra)structure, but -- I hope -- some of its routines, which do nice tricks with images.
 
@@ -26,7 +26,8 @@ up the parameters and produce all kinds of craziness.
 The routines in the second section (**Overt Manipulation**) alter 
 your images in ways that you would never expect to see "straight
 out of the camera" (unless your camera was broken). These are 
-transformations that are unapologetically digital.
+transformations that are unapologetically digital, and arguably
+somewhat gimmicky.
 
 ___
 
@@ -203,12 +204,23 @@ be preserved.  (This isn't actually a bug, it's basic geometry.)
 In particular, you want width/height > angle_degrees / 114.6.
 For instance, for default 180-degree bow, width/height > 1.57.
 The program will still "work" if these conditions are not met, 
-but scale and aspect ratio will be compromised.
+but it won't look like a rainbow.
 
-If the angle is small (so there is only a mild arc), then this will
+More specifically: 
+* Normally, the scaling works so that the outer radius minus the
+  inner radius of the bow is equal to the height of the image.
+* If theta \> 114(W/H) degrees, then the inner
+radius of the arc goes to zero (it's not a bow anymore but a 
+circular sector). 
+* Meanwhile, if theta > 180(W/H) degrees, then there is a 
+shrinking of the outer radius, so that it is smaller than
+the height of the image.
+
+If the angle is small (so there is only a mild arc), then geometry
+is not a problem at all.  But in this case, the routine will
 end up using a lot of memory (since internally it builds the full
-circle).  In its current configuration, therefore, it will not allow
-angles less than 45 degrees.
+circle).  In its current configuration, therefore, angles less than 
+45 degrees are not allowed.
 
 Note: this routine uses the built-in *plug-in-polar-coords* routine;
 an alternative approach, which is ultimately more elegant (and probably

@@ -52,7 +52,7 @@ def pan_to_bow(img,angle,arc_up):
 process.pfreg(pan_to_bow,
               [
                   (PF_IMAGE, "img", "Input image", None),
-                  (PF_SLIDER, "angle", "Angle of circle", 180, (45,360,15)),
+                  (PF_SPINNER, "angle", "Angle of circle", 180, (45,360,15)),
                   (PF_OPTION, "arc_up", "Arc direction", 0,
                    ("Rainbow", "Smile")),
               ],

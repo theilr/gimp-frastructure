@@ -230,11 +230,11 @@ def rotate_simple(img,layer,quarterturns):
 def fibonacci_prev(n):
     g = (math.sqrt(5)+1)/2
     print('prev:',n,g)
-    return round(n/g)
+    return int(round(n/g))
 
 def fibonacci_next(n):
     g = (math.sqrt(5)+1)/2
-    return round(n*g)
+    return int(round(n*g))
 
 def fibonacci_spiral(img,aspect,q_turn,blend,opacity,merge_down):
     '''

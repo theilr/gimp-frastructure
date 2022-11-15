@@ -227,9 +227,6 @@ def rotate_simple(img,layer,quarterturns):
     if quarterturns:
         pdb.plug_in_rotate(img,layer,quarterturns,False)
 
-def round(x):
-    return int(math.floor(0.5+x))
-
 def fibonacci_prev(n):
     g = (math.sqrt(5)+1)/2
     print('prev:',n,g)

@@ -7,9 +7,9 @@ Thus, at this point at least, the utility of this repository is not really its (
 ### Installation
 
 These routines are installed by copying the named python file (eg, `wideblur.py` or 
-`cheaphdr.py`) into your plug-in's directory.  You will **also** need to include
+`cheaphdr.py`) into your plug-ins directory.  You will **also** need to include
 `process.py` which contains most of the actual code for these various routines.
-
+Also, you should make sure the named python file is executable; on unix and on Mac, this is the command `chmod +x cheaphdr.py`
 ___
 ___
 
@@ -254,13 +254,13 @@ my flickr site:
 
 *Pan to Infinity* takes an image and bends it around into a horizontal 
 figure-eight racetrack shape that kind of looks like an infinity symbol. 
-The main point of this routine si to show an example of the kinds of 
+The main point of this routine is to show an example of the kinds of 
 things you can do 
 with the *Pan to Bow* routine. This is definitely in the "novelty" category,
 but it might give you ideas for something creative **you** might be able
 to do with your panoramic images.
 
-NOTE: If your image width-to-length ratio is too small, funny things might
+NOTE: If your image width-to-height ratio is too small, funny things might
 happen. 
 
 ANOTHER NOTE: The figure is produced from 180-degree chunks, and the

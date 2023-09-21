@@ -17,9 +17,9 @@
 from gimpfu import *
 import process
 
-def cheap_hdr(img,layer,radius,opacity):
+def cheap_hdr(img,layer,radius,spread,opacity):
     with process.UndoContext(img):
-        process.cheap_hdr(img,layer,radius,opacity)
+        process.cheap_hdr(img,layer,radius,spread,opacity)
 
 
 process.pfreg(cheap_hdr,
@@ -27,7 +27,8 @@ process.pfreg(cheap_hdr,
                   (PF_IMAGE, "image", "Input image", None),
                   (PF_DRAWABLE, "drawable", "Input drawable", None),
                   (PF_SLIDER, "radius", "Radius", 500, (0, 1500, 10)),
-                  (PF_SLIDER, "opacity", "Factor", 50, (0, 100, 1)),
+                  (PF_SLIDER, "spread", "Spread", 50, (0, 250, 10)),
+                  (PF_SLIDER, "opacity", "Factor", 50, (0, 100, 5)),
               ],
               name="Cheap HDR",
               description="Reduce global contrast while keeping local contrast",

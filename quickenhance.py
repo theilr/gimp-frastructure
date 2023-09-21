@@ -17,12 +17,15 @@
 from gimpfu import *
 import process
 
-def quick_enhance(img,layer,r_hdr,f_hdr,r_sharp,s_l_mode,f_stretch):
+def quick_enhance(img,layer,r_hdr,s_hdr,f_hdr,r_sharp,s_l_mode,f_stretch):
     '''combines cheap-hdr, sharpen, and stretch'''
     with process.UndoContext(img):
-        process.cheap_hdr(img,layer,r_hdr,f_hdr)
+        process.cheap_hdr(img,layer,r_hdr,s_hdr,f_hdr)
         process.sharpen(img,layer,r_sharp,s_l_mode)
-        process.stretch(img,layer,f_stretch)
+        if f_stretch:
+            process.stretch(img,layer,f_stretch)
+        else:
+            process.visible_base(img,name="QuickEnhanced")
 
 
 process.pfreg(quick_enhance,
@@ -30,6 +33,7 @@ process.pfreg(quick_enhance,
                   (PF_IMAGE, "image", "Input image", None),
                   (PF_DRAWABLE, "drawable", "Input drawable", None),
                   (PF_SLIDER, "r_hdr", "HDR Radius", 750, (0, 1500, 1)),
+                  (PF_SLIDER, "s_hdr", "HDR Spread", 50, (0, 250, 10)),
                   (PF_SLIDER, "f_hdr", "HDR factor", 50, (0, 100, 1)),
                   (PF_SLIDER, "r_sharp", "Unsharp Radius", 9, (0, 25, 1)),
                   (PF_RADIO, "s_l_mode","Sharpen Layer Mode",

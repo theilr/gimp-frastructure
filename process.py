@@ -78,12 +78,14 @@ def wide_blur(img, layer, radius):
     for _ in range(nruns):
         pdb.plug_in_gauss(img,layer,radius, radius, 0)
 
-def cheap_hdr(img,layer,r_blur,f_opacity):
+def cheap_hdr(img,layer,r_blur,r_spread,f_opacity):
     '''reduce global contrast without affecting local contrast'''
     ## then later on when you stretch contrast globally,
     ## you effectively enhance local contrast
     ov_layer = visible_base(img,name="Cheap HDR")
     wide_blur(img,ov_layer,r_blur)
+    if r_spread:
+        pdb.plug_in_spread(img,ov_layer,r_spread,r_spread)
     pdb.gimp_drawable_desaturate(ov_layer,3)
     pdb.gimp_invert(ov_layer)
     ov_layer.mode = LAYER_MODE_OVERLAY

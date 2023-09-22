@@ -321,11 +321,17 @@ def jagged_border(img,layer,border_shape,border_white,border_size,
                   thresh,fill_islands,one_pixel_border):
     if border_shape == 0:
         ## For rectangular border, to avoid rounded corners,
-        ## run twice: once vertical-only and once horizontal-only
+        ## run twice: once horizontal-only, and once vertical-only
         jagged_border_run(img,layer,1,border_white,border_size,
                           thresh,fill_islands,one_pixel_border)
+        ## get horizontal border layer, and (temporarily) make invisible
+        b_layer = pdb.gimp_image_get_active_layer(img)
+        pdb.gimp_item_set_visible(b_layer,False)
+        
         jagged_border_run(img,layer,2,border_white,border_size,
                           thresh,fill_islands,one_pixel_border)
+        ## reset horizontal border layer to visible
+        pdb.gimp_item_set_visible(b_layer,True)
     else:
         ## If not Rectangular, than just run once
         jagged_border_run(img,layer,border_shape,border_white,border_size,
